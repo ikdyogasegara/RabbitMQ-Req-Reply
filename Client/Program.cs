@@ -1,15 +1,16 @@
 ﻿using System.Text;
+using Microsoft.VisualBasic;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 var factory = new ConnectionFactory()
 {
     HostName = "localhost",
-    UserName = "guest",
-    Password = "guest",
+    UserName = "sipintarv5",
+    Password = "sipintarv5",
     Port = 5672,
     AutomaticRecoveryEnabled = true,
-    VirtualHost = "DemoApp"
+    VirtualHost = "pegasusv2"
 };
 
 
@@ -26,7 +27,7 @@ consumer.Received += (model, ea) =>
 {
     var body = ea.Body.ToArray();
     var message = Encoding.UTF8.GetString(body);
-    Console.WriteLine($"<= Reply recieved : {message}");
+    Console.WriteLine($"<= Mendapatkan Balasan : {message}");
     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
 };
 
@@ -35,9 +36,9 @@ channel.BasicConsume(queue: replyQueue.QueueName, autoAck:false, consumer: consu
 #region send request
 
 
-for (int i = 0; i < 100; i++)
+for (var i = 0; i < 100; i++)
 {
-    var message = $"Can I request a reply";
+    var message = $"Halooo {DateTime.Now:yyyMMddHHmmss}";
     var body = Encoding.UTF8.GetBytes(message);
 
     var properties = channel.CreateBasicProperties();
@@ -46,7 +47,7 @@ for (int i = 0; i < 100; i++)
 
     channel.BasicPublish("",  "request-queue", properties, body);
 
-    Console.WriteLine($"=>Sending Request : {properties.CorrelationId}" );
+    Console.WriteLine($"[{properties.CorrelationId}] Mengirim Permintaan => {message}" );
 
     await Task.Delay(5000);
 }

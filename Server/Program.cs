@@ -5,15 +5,12 @@ using RabbitMQ.Client.Events;
 var factory = new ConnectionFactory()
 {
     HostName = "localhost",
-    UserName = "guest",
-    Password = "guest",
+    UserName = "sipintarv5",
+    Password = "sipintarv5",
     Port = 5672,
     AutomaticRecoveryEnabled = true,
-    VirtualHost = "DemoApp"
+    VirtualHost = "pegasusv2"
 };
-
-Console.Clear();
-
 
 using var connection = factory.CreateConnection();
 
@@ -25,15 +22,17 @@ var consumer = new EventingBasicConsumer(channel);
 
 consumer.Received += (model, ea) =>
 {
-    Console.WriteLine($"Received Request : {ea.BasicProperties.CorrelationId}");
+    var bodyClient = ea.Body.ToArray();
+    var clientMessage = Encoding.UTF8.GetString(bodyClient);
+
+    Console.WriteLine($"[{ea.BasicProperties.CorrelationId}] Permintaan Masuk : {clientMessage}");
     channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
 
-    var replyMessage = $"This is your reply : {ea.BasicProperties.CorrelationId}";
-
+    var replyMessage = $"Halo Juga untuk {clientMessage}";
     var body = Encoding.UTF8.GetBytes(replyMessage);
 
     channel.BasicPublish("", ea.BasicProperties.ReplyTo, null, body);
-    Console.WriteLine($"=> Send Reply : {ea.BasicProperties.CorrelationId}");
+    Console.WriteLine($"=> [{ea.BasicProperties.CorrelationId}] Membalas Permintaan : {replyMessage}");
 };
 
 channel.BasicConsume(queue: "request-queue", autoAck: false, consumer: consumer);
